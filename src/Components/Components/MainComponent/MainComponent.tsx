@@ -1,23 +1,49 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import globals from '../../../utils/globals';
 import { v4 as uuidv4 } from 'uuid';
+import './MainComponent.css';
 
 const exampleQueries = [
     'i want to search a city',
     'joke about money',
     'city of Paris',
     'please give me a joke',
-    'help'
     ];
 
     const MainComponent: React.FC = () => {
-    const [messages, setMessages] = useState<{ from: string; text: string }[]>([]);
+    const [messages, setMessages] = useState<{ from: 'user' | 'bot'; text: string }[]>([]);
     const [input, setInput] = useState('');
     const sessionId = useRef(uuidv4()).current;
+    const chatEndRef = useRef<HTMLDivElement>(null);
 
-    const send = async (text?: string) => {
-        const queryText = text ?? input;
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    const formatResponseText = (text: string) => {
+        try {
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) {
+            return parsed
+            .map(obj => {
+                return Object.entries(obj)
+                .map(([k, v], idx, arr) => {
+                    const comma = idx < arr.length - 1 ? ',' : '';
+                    const displayVal = typeof v === 'string' ? v : v;
+                    return `   ${k}: ${displayVal}${comma}`;
+                })
+                .join('\n');
+            })
+            .join('\n\n');
+        }
+        } catch {
+        }
+        return text;
+    };
+
+    const send = async (override?: string) => {
+        const queryText = override ?? input;
         if (!queryText.trim()) return;
         setMessages(m => [...m, { from: 'user', text: queryText }]);
         setInput('');
@@ -26,7 +52,8 @@ const exampleQueries = [
             globals.api.chat,
             { session: sessionId, queryResult: { queryText } }
         );
-        setMessages(m => [...m, { from: 'bot', text: res.data.fulfillmentText }]);
+        const botText = formatResponseText(res.data.fulfillmentText);
+        setMessages(m => [...m, { from: 'bot', text: botText }]);
         } catch {
         setMessages(m => [...m, { from: 'bot', text: '❌ Error contacting server' }]);
         }
@@ -34,70 +61,71 @@ const exampleQueries = [
 
     const handleExample = (q: string) => {
         if (q === 'help') {
-        setMessages(m => [...m, { from: 'bot', text:
-            `👋 You can try:\n• i want to search a city\n• joke about money\n• city of Paris\n• please give me a joke`
-        }]);
+        setMessages(m => [
+            ...m,
+            {
+            from: 'bot',
+            text:
+                `👋 You can try:\n` +
+                `• i want to search a city\n` +
+                `• joke about money\n` +
+                `• city of Paris\n` +
+                `• please give me a joke`
+            }
+        ]);
         } else {
         send(q);
         }
     };
 
     return (
-        <div style={{ padding: 20, fontFamily: 'sans-serif' }}>
-        <h2>🚀 Chatbot</h2>
+        <div className="MainComponent">
+        <h2 className="title">🤖 Chatbot</h2>
 
-        {/* פס ההצעות */}
-        <div style={{ marginBottom: 10 }}>
+        <div className="examples-bar">
+            <span className="examples-label">Examples:</span>
             {exampleQueries.map((q, i) => (
-            <button
-                key={i}
-                onClick={() => handleExample(q)}
-                style={{
-                margin: '0 4px 4px 0',
-                padding: '4px 8px',
-                borderRadius: 12,
-                border: '1px solid #888',
-                background: '#f0f0f0',
-                cursor: 'pointer'
-                }}
-            >
+            <button key={i} className="example-button" onClick={() => handleExample(q)}>
                 {q}
             </button>
             ))}
+            <button className="help-button" onClick={() => handleExample('help')}>
+            help
+            </button>
         </div>
 
-        <div
-            style={{
-            maxHeight: 300,
-            overflowY: 'auto',
-            border: '1px solid #ccc',
-            padding: 10,
-            marginBottom: 10
-            }}
-        >
+        <div className="chat-window">
             {messages.map((m, i) => (
-            <div
-                key={i}
-                style={{
-                textAlign: m.from === 'user' ? 'right' : 'left',
-                margin: '5px 0'
-                }}
-            >
-                <b>{m.from === 'user' ? 'You' : 'Bot'}:</b> {m.text}
+            <div key={i} className={`message ${m.from}`}>
+                <b>{m.from === 'user' ? 'You' : 'Bot'}:</b>
+                <span className="message-text">{m.text}</span>
             </div>
             ))}
+            <div ref={chatEndRef} />
         </div>
 
-        <div>
+        <div className="input-area">
             <input
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && send()}
-            placeholder="Type something…"
-            style={{ width: '80%', padding: '8px' }}
+            placeholder={`Type something… e.g. "joke about money"`}
             />
-            <button onClick={() => send()} style={{ padding: '8px 12px', marginLeft: 8 }}>
-            Send
+            <button onClick={() => send()} className="send-button" aria-label="Send">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#333"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            >
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
             </button>
         </div>
         </div>
