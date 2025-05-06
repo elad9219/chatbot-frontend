@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import './MainComponent.css';
 
 const exampleQueries = [
+    'random joke',
     'i want to search a city',
     'joke about money',
     'city of Paris',
@@ -21,20 +22,17 @@ const exampleQueries = [
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    // Helper to pretty‑print JSON (cities) or just return text
     const formatResponseText = (text: string) => {
         try {
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed)) {
             return parsed
-            .map(obj => {
-                return Object.entries(obj)
-                .map(([k, v], idx, arr) => {
-                    const comma = idx < arr.length - 1 ? ',' : '';
-                    const displayVal = typeof v === 'string' ? v : v;
-                    return `   ${k}: ${displayVal}${comma}`;
-                })
-                .join('\n');
-            })
+            .map(obj =>
+                Object.entries(obj)
+                .map(([k, v], i, arr) => `   ${k}: ${v}${i < arr.length - 1 ? ',' : ''}`)
+                .join('\n')
+            )
             .join('\n\n');
         }
         } catch {
@@ -67,13 +65,31 @@ const exampleQueries = [
             from: 'bot',
             text:
                 `👋 You can try:\n` +
+                `• random joke\n` +
                 `• i want to search a city\n` +
                 `• joke about money\n` +
                 `• city of Paris\n` +
-                `• please give me a joke`
-            }
+                `• please give me a joke\n` +
+                `\nOr type your own query…`,
+            },
         ]);
+        }
+        else if (q.startsWith('random')) {
+        const parts = q.split(' ');
+        if (parts.length === 2) {
+            axios
+            .get<string>(`${globals.api.chat}/random`)
+            .then(res => setMessages(m => [...m, { from: 'bot', text: res.data }]))
+            .catch(() => setMessages(m => [...m, { from: 'bot', text: '❌ Error contacting server' }]));
         } else {
+            const category = parts[1];
+            axios
+            .get<string>(`${globals.api.chat}/random/${encodeURIComponent(category)}`)
+            .then(res => setMessages(m => [...m, { from: 'bot', text: res.data }]))
+            .catch(() => setMessages(m => [...m, { from: 'bot', text: '❌ Error contacting server' }]));
+        }
+        }
+        else {
         send(q);
         }
     };
@@ -97,7 +113,7 @@ const exampleQueries = [
         <div className="chat-window">
             {messages.map((m, i) => (
             <div key={i} className={`message ${m.from}`}>
-                <b>{m.from === 'user' ? 'You' : 'Bot'}:</b>
+                <b>{m.from === 'user' ? 'You' : 'Bot'}:</b>{' '}
                 <span className="message-text">{m.text}</span>
             </div>
             ))}
