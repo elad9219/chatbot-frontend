@@ -1,46 +1,68 @@
-# Getting Started with Create React App
+# Chatbot Project
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Description
 
-## Available Scripts
+This project is a chatbot application that allows users to interact with a conversational agent. The chatbot can respond to predefined queries, fetch jokes from an external API, and provide information about cities using another external API. It leverages natural language processing through Dialogflow to understand and process user inputs, offering a seamless and engaging user experience.
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- Predefined responses for common queries like "hi" and "how are you."
+- Integration with an external Jokes API to fetch and display random jokes.
+- Integration with an external City Information API to retrieve and present details about cities.
+- Natural language processing capabilities powered by Dialogflow.
+- User-friendly web interface built with React.ts.
+- Helpful prompts for first-time users to guide them on how to interact with the chatbot.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Technologies Used
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- **Backend**: Java, Spring Framework
+- **Frontend**: React.ts
+- **Natural Language Processing**: Dialogflow
+- **External APIs**: Jokes API, City Information API
+- **Containerization**: Docker
 
-### `npm test`
+## Setup Instructions
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Clone the Repositories**:
+   - Backend: `git clone https://github.com/elad9219/chatbot.git`
+   - Frontend: `git clone https://github.com/elad9219/chatbot-frontend.git`
 
-### `npm run build`
+2. **Backend Setup**:
+   - Navigate to the backend directory: `cd chatbot`
+   - Ensure you have Java and Maven installed.
+   - Configure environment variables (e.g., API keys for Dialogflow, Jokes API, and City Information API).
+   - Run `mvn spring-boot:run` to start the backend server.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. **Frontend Setup**:
+   - Navigate to the frontend directory: `cd chatbot-frontend`
+   - Ensure you have Node.js and npm installed.
+   - Run `npm install` to install dependencies.
+   - Run `npm start` to start the frontend development server.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4. **Dialogflow Configuration**:
+   - Set up a Dialogflow agent and configure intents and entities for basic queries, joke requests, and city information requests.
+   - Integrate the Dialogflow API with the backend by providing the necessary credentials (e.g., Google Cloud service account key).
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Usage
 
-### `npm run eject`
+- Access the chatbot via the web interface at `http://localhost:3000` (or the deployed URL: [https://bot.runmydocker-app.com/](https://bot.runmydocker-app.com/)).
+- Type messages like:
+  - "Hi" → Get a friendly greeting.
+  - "Tell me a joke" → Receive a random joke from chucknorris.io API.
+  - "City of Paris" → Get information about the specified city from the City API.
+- First-time users will see helpful prompts to guide them on what to ask.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Screenshots
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+![image](https://github.com/user-attachments/assets/a32e880b-7683-48cd-9039-9cdcffcb9de1)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+![image](https://github.com/user-attachments/assets/70f2bfb4-1a51-4027-bcd2-3552bd9f3264)
 
-## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Links
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- **Live Project**: [https://bot.runmydocker-app.com/](https://bot.runmydocker-app.com/)
+- **Swagger UI**: [https://bot.runmydocker-app.com/swagger-ui.html](https://bot.runmydocker-app.com/swagger-ui.html)
+- **Backend Repository**: [https://github.com/elad9219/chatbot](https://github.com/elad9219/chatbot)
+- **Frontend Repository**: [https://github.com/elad9219/chatbot-frontend](https://github.com/elad9219/chatbot-frontend)
