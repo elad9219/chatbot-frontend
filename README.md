@@ -6,8 +6,8 @@ This project is a chatbot application that allows users to interact with a conve
 
 ## Links
 
-- **Live Project**: [https://bot.runmydocker-app.com/](https://bot.runmydocker-app.com/)
-- **Swagger UI**: [https://bot.runmydocker-app.com/swagger-ui.html](https://bot.runmydocker-app.com/swagger-ui.html)
+- **Live Project**: [https://aichat.runmydocker-app.com/](https://aichat.runmydocker-app.com/)
+- **Swagger UI**: [https://aichat.runmydocker-app.com/swagger-ui.html](https://aichat.runmydocker-app.com/swagger-ui.html)
 - **Backend Repository**: [https://github.com/elad9219/chatbot](https://github.com/elad9219/chatbot)
 - **Frontend Repository**: [https://github.com/elad9219/chatbot-frontend](https://github.com/elad9219/chatbot-frontend)
 
