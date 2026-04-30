@@ -140,8 +140,7 @@ const MainComponent: React.FC = () => {
                 {/* Waking Up Message Indicator */}
                 {isWakingUp && (
                     <div className="waking-up-msg">
-                        ⏳ השרת החינמי מתעורר (יכול לקחת כ-10 שניות), אנא המתן...
-                    </div>
+⏳ Initializing free server tier. The backend needs about 10 seconds to wake up for the first search. After that, everything will be instant!                    </div>
                 )}
                 <div ref={chatEndRef} />
             </div>
