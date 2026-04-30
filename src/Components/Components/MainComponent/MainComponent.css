@@ -120,3 +120,29 @@
     .title { font-size: 1.4em; }
     .chat-window { padding: 8px; }
 }
+
+/* Add this to the bottom of the file */
+.waking-up-msg {
+    text-align: center;
+    color: #b45309;
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    padding: 10px;
+    background-color: #fef3c7;
+    border-radius: 8px;
+    border: 1px solid #fde68a;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+.input-area input:disabled,
+.send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
