@@ -18,7 +18,7 @@ type Message = { from: 'user' | 'bot'; text: string; movies?: MovieSummary[]; su
 
 const MainComponent: React.FC = () => {
     const movieDemo = process.env.REACT_APP_MOVIE_DEMO === 'true';
-    const examples = movieDemo ? ['Comedy under 100 minutes'] : exampleQueries;
+    const examples = movieDemo ? ['Comedy under 100 minutes', 'Find a movie by title'] : exampleQueries;
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [phase, setPhase] = useState<'idle' | 'checking' | 'waking' | 'sending'>('idle');
@@ -223,7 +223,7 @@ const MainComponent: React.FC = () => {
                     onKeyDown={event => {
                         if (event.key === 'Enter' && !event.nativeEvent.isComposing) send();
                     }}
-                    placeholder={movieDemo ? 'Ask for a short comedy…' : 'Type something… e.g. "joke about money"'}
+                    placeholder={movieDemo ? 'Type a message…' : 'Type something… e.g. "joke about money"'}
                     aria-label="Chat message"
                 />
                 <button onClick={() => send()} className="send-button" aria-label="Send" disabled={phase !== 'idle'}>
