@@ -5,6 +5,7 @@ import App from './App';
 
 jest.mock('axios', () => ({
     create: () => ({ get: jest.fn(), post: jest.fn() }),
+    isAxiosError: (error?: { isAxiosError?: boolean }) => error?.isAxiosError === true,
 }));
 jest.mock('uuid', () => ({ v4: () => 'test-session' }));
 
@@ -106,4 +107,42 @@ test('ignores an HTML wake page and waits for an UP response', async () => {
     } finally {
         jest.useRealTimers();
     }
+});
+
+test.each([
+    [400, /could not accept that message/i],
+    [413, /shorten your message/i],
+    [429, /chat is busy/i],
+])('explains a %s rejection and keeps the draft', async (status, notice) => {
+    get.mockResolvedValue(healthy);
+    post.mockRejectedValueOnce({ isAxiosError: true, response: { status } })
+        .mockResolvedValueOnce({ data: { fulfillmentText: 'Hello!' } });
+    render(<App />);
+
+    const input = typeAndSend('Hi');
+    expect(await screen.findByRole('alert')).toHaveTextContent(notice);
+    expect(input).toHaveValue('Hi');
+    expect(screen.queryByText('Hi')).not.toBeInTheDocument();
+    expect(post).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(await screen.findByText('Hello!')).toBeVisible();
+    expect(post).toHaveBeenCalledTimes(2);
+    expect(get).toHaveBeenCalledTimes(1);
+});
+
+test('keeps a message over the Unicode limit in the input without sending it', async () => {
+    get.mockResolvedValue(healthy);
+    post.mockResolvedValue({ data: { fulfillmentText: 'Hello!' } });
+    render(<App />);
+
+    const message = '🎬'.repeat(257);
+    const input = typeAndSend(message);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/256 characters/i);
+    expect(input).toHaveValue(message);
+    expect(post).not.toHaveBeenCalled();
+
+    typeAndSend('🎬'.repeat(256));
+    expect(await screen.findByText('Hello!')).toBeVisible();
+    expect(post).toHaveBeenCalledTimes(1);
 });

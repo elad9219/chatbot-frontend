@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { isAxiosError } from 'axios';
 import axiosInstance, { createBackendReadiness } from '../../utils/axiosInstance';
 import globals from '../../utils/globals';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,6 +13,15 @@ const exampleQueries = [
     'city of Paris',
     'please give me a joke',
 ];
+
+const maxMessageCharacters = 256;
+const longMessageNotice = `Keep your message to ${maxMessageCharacters} characters or fewer.`;
+
+const chatRejectionNotices: Partial<Record<number, string>> = {
+    400: 'The chat could not accept that message. Edit it or reload to start a new chat.',
+    413: 'The chat request is too large. Shorten your message and try again.',
+    429: 'The chat is busy. Wait a moment and try again.',
+};
 
 type ChatReply = { fulfillmentText: string; movies?: MovieSummary[]; suggestedReply?: string };
 type Message = { from: 'user' | 'bot'; text: string; movies?: MovieSummary[]; suggestedReply?: string };
@@ -108,8 +118,15 @@ const MainComponent: React.FC = () => {
             } else {
                 setMessages(current => [...current, botMessage]);
             }
-        } catch {
+        } catch (error) {
             if (pendingAction.current !== action) return;
+            if (dispatched && queryText !== undefined && isAxiosError(error) && error.response) {
+                const rejectionNotice = chatRejectionNotices[error.response.status];
+                if (rejectionNotice) {
+                    setNotice(rejectionNotice);
+                    return;
+                }
+            }
             connection.readiness.invalidate();
             setNotice(dispatched
                 ? (queryText === undefined
@@ -127,7 +144,11 @@ const MainComponent: React.FC = () => {
 
     const send = (override?: string) => {
         const queryText = override ?? input;
-        if (!queryText.trim()) return;
+        if (!queryText.trim() || pendingAction.current) return;
+        if (Array.from(queryText).length > maxMessageCharacters) {
+            setNotice(longMessageNotice);
+            return;
+        }
         void runRequest(async signal => {
             const response = await axiosInstance.post<ChatReply>(
                 globals.api.chat,
