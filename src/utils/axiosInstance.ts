@@ -1,49 +1,71 @@
 import axios from 'axios';
+import globals from './globals';
 
-const axiosInstance = axios.create();
+const axiosInstance = axios.create({ timeout: 25_000 });
+const healthUrl = new URL('/actuator/health', globals.api.chat).toString();
 
-// Response interceptor with an advanced Retry Mechanism for CORS & Cold Starts
-axiosInstance.interceptors.response.use(
-    async (response) => {
-        // Detect if the free server is waking up and returning an HTML loading page
-        if (typeof response.data === 'string' && response.data.toLowerCase().includes('<html')) {
-            const config = { ...response.config } as any;
-            config._retryCount = (config._retryCount || 0) + 1;
-            
-            // Retry up to 10 times (approx 30 seconds total waiting)
-            if (config._retryCount <= 10) {
-                window.dispatchEvent(new Event('serverWakingUp'));
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                return axiosInstance(config);
-            }
-            return Promise.reject(new Error("Server timeout"));
+function pause(ms: number, signal: AbortSignal): Promise<void> {
+    return new Promise(resolve => {
+        if (signal.aborted) {
+            resolve();
+            return;
         }
+        const finish = () => {
+            clearTimeout(timer);
+            signal.removeEventListener('abort', finish);
+            resolve();
+        };
+        const timer = setTimeout(finish, ms);
+        signal.addEventListener('abort', finish, { once: true });
+    });
+}
 
-        // Valid response received, server is awake
-        window.dispatchEvent(new Event('serverAwake'));
-        return response;
-    },
-    async (error) => {
-        // Identify standard cold start errors: 502, 503, 504, or absolute Network Error (CORS block)
-        const isCorsOrNetworkError = 
-            !error.response || 
-            error.message === 'Network Error' || 
-            error.code === 'ERR_NETWORK' ||
-            error.response.status >= 500;
-
-        if (isCorsOrNetworkError && error.config) {
-            const config = { ...error.config } as any;
-            config._retryCount = (config._retryCount || 0) + 1;
-
-            if (config._retryCount <= 10) {
-                window.dispatchEvent(new Event('serverWakingUp'));
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                return axiosInstance(config);
+async function pollHealth(signal: AbortSignal): Promise<void> {
+    const deadline = Date.now() + 40_000;
+    while (!signal.aborted) {
+        const timeLeft = deadline - Date.now();
+        if (timeLeft <= 0) break;
+        try {
+            const response = await axiosInstance.get<{ status?: string }>(healthUrl, {
+                signal,
+                timeout: Math.min(4_000, timeLeft),
+            });
+            if (response.data?.status === 'UP') {
+                return;
             }
+        } catch {
+            // Only the read-only health probe may be retried.
         }
-
-        return Promise.reject(error);
+        const remaining = deadline - Date.now();
+        if (remaining > 0) {
+            await pause(Math.min(2_500, remaining), signal);
+        }
     }
-);
+    throw new Error('Backend did not become ready');
+}
+
+export function createBackendReadiness(signal: AbortSignal) {
+    let readyUntil = 0;
+    let pending: Promise<void> | undefined;
+
+    return {
+        wait(): Promise<void> {
+            if (!signal.aborted && Date.now() < readyUntil) {
+                return Promise.resolve();
+            }
+            if (!pending) {
+                pending = pollHealth(signal).then(() => {
+                    readyUntil = Date.now() + 15_000;
+                }).finally(() => {
+                    pending = undefined;
+                });
+            }
+            return pending;
+        },
+        invalidate() {
+            readyUntil = 0;
+        },
+    };
+}
 
 export default axiosInstance;
