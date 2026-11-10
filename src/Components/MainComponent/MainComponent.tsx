@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axiosInstance, { createBackendReadiness } from '../../../utils/axiosInstance';
-import globals from '../../../utils/globals';
+import axiosInstance, { createBackendReadiness } from '../../utils/axiosInstance';
+import globals from '../../utils/globals';
 import { v4 as uuidv4 } from 'uuid';
+import MovieCards, { MovieSummary } from '../MovieCards/MovieCards';
 import './MainComponent.css';
 
 const exampleQueries = [
@@ -12,8 +13,13 @@ const exampleQueries = [
     'please give me a joke',
 ];
 
+type ChatReply = { fulfillmentText: string; movies?: MovieSummary[]; suggestedReply?: string };
+type Message = { from: 'user' | 'bot'; text: string; movies?: MovieSummary[]; suggestedReply?: string };
+
 const MainComponent: React.FC = () => {
-    const [messages, setMessages] = useState<{ from: 'user' | 'bot'; text: string }[]>([]);
+    const movieDemo = process.env.REACT_APP_MOVIE_DEMO === 'true';
+    const examples = movieDemo ? ['Comedy under 100 minutes'] : exampleQueries;
+    const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [phase, setPhase] = useState<'idle' | 'checking' | 'waking' | 'sending'>('idle');
     const [notice, setNotice] = useState('');
@@ -61,7 +67,7 @@ const MainComponent: React.FC = () => {
         return text;
     };
 
-    const runRequest = async (request: (signal: AbortSignal) => Promise<string>, queryText?: string) => {
+    const runRequest = async (request: (signal: AbortSignal) => Promise<ChatReply>, queryText?: string) => {
         const connection = backend.current;
         if (!connection || pendingAction.current) return;
 
@@ -83,16 +89,24 @@ const MainComponent: React.FC = () => {
             const reply = await request(connection.signal);
             if (pendingAction.current !== action) return;
 
-            const text = formatResponseText(reply);
+            const text = formatResponseText(reply.fulfillmentText);
             if (!text.trim()) {
                 setNotice('The server returned an empty reply. You can try again.');
                 return;
             }
+
+            const botMessage: Message = {
+                from: 'bot',
+                text,
+                movies: reply.movies,
+                suggestedReply: reply.suggestedReply,
+            };
+
             if (queryText !== undefined) {
-                setMessages(current => [...current, { from: 'user', text: queryText }, { from: 'bot', text }]);
+                setMessages(current => [...current, { from: 'user', text: queryText }, botMessage]);
                 setInput(current => current === queryText ? '' : current);
             } else {
-                setMessages(current => [...current, { from: 'bot', text }]);
+                setMessages(current => [...current, botMessage]);
             }
         } catch {
             if (pendingAction.current !== action) return;
@@ -115,14 +129,14 @@ const MainComponent: React.FC = () => {
         const queryText = override ?? input;
         if (!queryText.trim()) return;
         void runRequest(async signal => {
-            const response = await axiosInstance.post<{ fulfillmentText?: string }>(
+            const response = await axiosInstance.post<ChatReply>(
                 globals.api.chat,
                 { session: sessionId, queryResult: { queryText } },
                 { signal }
             );
             const text = response.data?.fulfillmentText;
             if (typeof text !== 'string') throw new Error('Unexpected chat response');
-            return text;
+            return response.data;
         }, queryText);
     };
 
@@ -132,7 +146,7 @@ const MainComponent: React.FC = () => {
                 ...current,
                 {
                     from: 'bot',
-                    text: `👋 You can try:\n${exampleQueries.map(example => `• ${example}`).join('\n')}\n\nOr type your own query…`,
+                    text: `👋 You can try:\n${examples.map(example => `• ${example}`).join('\n')}\n\nOr type your own query…`,
                 },
             ]);
         } else if (query === 'random joke') {
@@ -141,7 +155,7 @@ const MainComponent: React.FC = () => {
                 if (typeof response.data !== 'string' || /^\s*<(?:!doctype html|html)\b/i.test(response.data)) {
                     throw new Error('Unexpected joke response');
                 }
-                return response.data;
+                return { fulfillmentText: response.data };
             });
         } else {
             send(query);
@@ -155,11 +169,11 @@ const MainComponent: React.FC = () => {
 
     return (
         <div className="MainComponent">
-            <h2 className="title">🤖 Chatbot</h2>
+            <h2 className="title">{movieDemo ? 'Movie Night Chatbot' : '🤖 Chatbot'}</h2>
 
             <div className="examples-bar">
                 <span className="examples-label">Examples:</span>
-                {exampleQueries.map((q, i) => (
+                {examples.map((q, i) => (
                     <button key={i} className="example-button" disabled={phase !== 'idle'} onClick={() => handleExample(q)}>
                         {q}
                     </button>
@@ -174,6 +188,13 @@ const MainComponent: React.FC = () => {
                     <div key={i} className={`message ${m.from}`}>
                         <b>{m.from === 'user' ? 'You' : 'Bot'}:</b>{' '}
                         <span className="message-text">{m.text}</span>
+                        {!!m.movies?.length && <MovieCards movies={m.movies} />}
+                        {m.suggestedReply && i === messages.length - 1 && (
+                            <button type="button" className="example-button" disabled={phase !== 'idle'}
+                                onClick={() => send(m.suggestedReply)}>
+                                {m.suggestedReply}
+                            </button>
+                        )}
                     </div>
                 ))}
 
@@ -188,6 +209,13 @@ const MainComponent: React.FC = () => {
                 <div ref={chatEndRef} />
             </div>
 
+            {movieDemo && (
+                <p className="movie-credit">
+                    This product uses the TMDB API but is not endorsed or certified by TMDB.{' '}
+                    <a href="https://www.themoviedb.org/about/logos-attribution">TMDB credits</a>
+                </p>
+            )}
+
             <div className="input-area">
                 <input
                     value={input}
@@ -195,7 +223,7 @@ const MainComponent: React.FC = () => {
                     onKeyDown={event => {
                         if (event.key === 'Enter' && !event.nativeEvent.isComposing) send();
                     }}
-                    placeholder={`Type something… e.g. "joke about money"`}
+                    placeholder={movieDemo ? 'Ask for a short comedy…' : 'Type something… e.g. "joke about money"'}
                     aria-label="Chat message"
                 />
                 <button onClick={() => send()} className="send-button" aria-label="Send" disabled={phase !== 'idle'}>

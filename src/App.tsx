@@ -1,5 +1,5 @@
 import React from 'react';
-import MainComponent from './Components/Components/MainComponent/MainComponent';
+import MainComponent from './Components/MainComponent/MainComponent';
 
 const App: React.FC = () => (
     <div>

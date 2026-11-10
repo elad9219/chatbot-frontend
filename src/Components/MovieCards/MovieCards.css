@@ -1,0 +1,50 @@
+.movie-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+    gap: 12px;
+    padding: 0;
+    margin: 12px 0;
+    list-style: none;
+}
+
+.movie-card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #fff;
+    text-align: left;
+}
+
+.movie-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+}
+
+.movie-card-content {
+    padding: 12px;
+}
+
+.movie-card-content h3 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+}
+
+.movie-card-year,
+.movie-credit {
+    color: #555;
+    font-size: 0.8rem;
+}
+
+.movie-card-content p {
+    margin: 8px 0 0;
+    line-height: 1.45;
+    font-size: 0.875rem;
+}
+
+.movie-credit {
+    margin: 4px 0 8px;
+}
