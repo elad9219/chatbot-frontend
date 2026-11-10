@@ -20,12 +20,19 @@ function MovieCards({ movies }: { movies: MovieSummary[] }) {
 
                 return (
                     <li key={movie.id} className="movie-card">
-                        {poster && <img src={poster} alt="" loading="lazy" width="342" height="513" />}
-                        <div className="movie-card-content">
-                            <h3>{movie.title}</h3>
-                            {year && <span className="movie-card-year">{year}</span>}
-                            {movie.overview && <p>{movie.overview}</p>}
+                        <div className="movie-card-heading">
+                            {poster && <img src={poster} alt="" loading="lazy" width="342" height="513" />}
+                            <div>
+                                <h3>{movie.title}</h3>
+                                {year && <span className="movie-card-year">{year}</span>}
+                            </div>
                         </div>
+                        {movie.overview && (
+                            <details className="movie-card-overview">
+                                <summary aria-label={`Overview of ${movie.title}`}>Overview</summary>
+                                <p>{movie.overview}</p>
+                            </details>
+                        )}
                     </li>
                 );
             })}

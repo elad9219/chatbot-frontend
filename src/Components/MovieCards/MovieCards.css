@@ -1,6 +1,7 @@
 .movie-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    align-items: start;
     gap: 12px;
     padding: 0;
     margin: 12px 0;
@@ -9,26 +10,33 @@
 
 .movie-card {
     min-width: 0;
-    overflow: hidden;
+    padding: 12px;
     border: 1px solid #ddd;
     border-radius: 10px;
     background: #fff;
     text-align: left;
+    overflow-wrap: anywhere;
 }
 
-.movie-card img {
+.movie-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 96px;
+}
+
+.movie-card-heading img {
     display: block;
-    width: 100%;
+    flex: none;
+    width: 64px;
     height: auto;
     aspect-ratio: 2 / 3;
     object-fit: cover;
+    border-radius: 6px;
+    background: #f0f0f0;
 }
 
-.movie-card-content {
-    padding: 12px;
-}
-
-.movie-card-content h3 {
+.movie-card-heading h3 {
     margin: 0 0 4px;
     font-size: 1rem;
 }
@@ -39,10 +47,27 @@
     font-size: 0.8rem;
 }
 
-.movie-card-content p {
-    margin: 8px 0 0;
-    line-height: 1.45;
+.movie-card-overview {
+    margin-top: 8px;
     font-size: 0.875rem;
+    line-height: 1.45;
+}
+
+.movie-card-overview summary {
+    min-height: 28px;
+    padding: 4px 0;
+    box-sizing: border-box;
+    cursor: pointer;
+    color: #17457a;
+}
+
+.movie-card-overview summary:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.movie-card-overview p {
+    margin: 4px 0 0;
 }
 
 .movie-credit {
