@@ -1,19 +1,20 @@
 .movie-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
     align-items: start;
     gap: 12px;
     padding: 0;
-    margin: 12px 0;
+    margin: 14px 0;
     list-style: none;
 }
 
 .movie-card {
     min-width: 0;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background: #fff;
+    padding: 14px;
+    border: 1px solid #dce3ef;
+    border-radius: 14px;
+    background: #f8faff;
+    color: #1b2940;
     text-align: left;
     overflow-wrap: anywhere;
 }
@@ -22,54 +23,78 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    min-height: 96px;
+    min-height: 108px;
+}
+
+.movie-card-heading > div {
+    min-width: 0;
 }
 
 .movie-card-heading img {
     display: block;
     flex: none;
-    width: 64px;
+    width: 72px;
     height: auto;
     aspect-ratio: 2 / 3;
     object-fit: cover;
-    border-radius: 6px;
-    background: #f0f0f0;
+    border-radius: 8px;
+    background: #e4eaf4;
+    box-shadow: 0 3px 8px rgb(27 41 64 / 12%);
 }
 
 .movie-card-heading h3 {
-    margin: 0 0 4px;
+    margin: 0 0 6px;
     font-size: 1rem;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
 }
 
-.movie-card-year,
-.movie-credit {
-    color: #555;
-    font-size: 0.8rem;
+.movie-card-year {
+    color: #5c687c;
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
 }
 
 .movie-card-overview {
-    margin-top: 8px;
+    margin-top: 10px;
+    border-top: 1px solid #dce3ef;
     font-size: 0.875rem;
-    line-height: 1.45;
+    line-height: 1.6;
 }
 
 .movie-card-overview summary {
-    min-height: 28px;
-    padding: 4px 0;
-    box-sizing: border-box;
+    min-height: 44px;
+    padding: 11px 0 8px;
     cursor: pointer;
-    color: #17457a;
+    color: #2457a8;
+    font-weight: 600;
 }
 
 .movie-card-overview summary:focus-visible {
-    outline: 2px solid currentColor;
+    outline: 3px solid #2457c5;
     outline-offset: 2px;
+    border-radius: 4px;
 }
 
 .movie-card-overview p {
-    margin: 4px 0 0;
+    margin: 0 0 4px;
+    color: #3c4b62;
 }
 
 .movie-credit {
-    margin: 4px 0 8px;
+    flex-shrink: 0;
+    margin: 0 2px 10px;
+    color: #5c687c;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.movie-credit a {
+    color: #2457a8;
+    text-underline-offset: 3px;
+}
+
+.movie-credit a:focus-visible {
+    outline: 3px solid #2457c5;
+    outline-offset: 3px;
 }
