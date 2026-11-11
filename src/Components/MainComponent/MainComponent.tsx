@@ -5,6 +5,7 @@ import globals from '../../utils/globals';
 import { v4 as uuidv4 } from 'uuid';
 import MovieCards, { MovieSummary } from '../MovieCards/MovieCards';
 import ChatWelcome from '../ChatWelcome/ChatWelcome';
+import ChatHeader from '../ChatHeader/ChatHeader';
 import './MainComponent.css';
 
 const exampleQueries = [
@@ -34,7 +35,9 @@ const MainComponent: React.FC = () => {
     const [input, setInput] = useState('');
     const [phase, setPhase] = useState<'idle' | 'checking' | 'waking' | 'sending'>('idle');
     const [notice, setNotice] = useState('');
-    const [sessionId] = useState(() => uuidv4());
+    const [sessionId, setSessionId] = useState(() => uuidv4());
+    const [pendingText, setPendingText] = useState<string | null>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const backend = useRef<{
         signal: AbortSignal;
@@ -43,8 +46,9 @@ const MainComponent: React.FC = () => {
     const pendingAction = useRef<object | null>(null);
 
     useEffect(() => {
-        chatEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
-    }, [messages, phase, notice]);
+        const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+        chatEndRef.current?.scrollIntoView?.({ behavior: reduceMotion ? 'auto' : 'smooth' });
+    }, [messages, phase, notice, pendingText]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -96,6 +100,7 @@ const MainComponent: React.FC = () => {
             if (pendingAction.current !== action) return;
             clearTimeout(wakeTimer);
             setPhase('sending');
+            setPendingText(queryText ?? null);
             dispatched = true;
             const reply = await request(connection.signal);
             if (pendingAction.current !== action) return;
@@ -138,6 +143,7 @@ const MainComponent: React.FC = () => {
             clearTimeout(wakeTimer);
             if (pendingAction.current === action) {
                 pendingAction.current = null;
+                setPendingText(null);
                 setPhase('idle');
             }
         }
@@ -163,6 +169,7 @@ const MainComponent: React.FC = () => {
     };
 
     const handleExample = (query: string) => {
+        if (pendingAction.current) return;
         if (query === 'help') {
             setMessages(current => [
                 ...current,
@@ -189,9 +196,22 @@ const MainComponent: React.FC = () => {
         setPhase('idle');
     };
 
+    const startNewChat = () => {
+        if (pendingAction.current) return;
+        setSessionId(uuidv4());
+        setMessages([]);
+        setNotice('');
+        setPendingText(null);
+        inputRef.current?.focus({ preventScroll: true });
+    };
+
     return (
         <div className="MainComponent">
-            <h2 className="title">{movieDemo ? 'Movie Night Chatbot' : '🤖 Chatbot'}</h2>
+            {movieDemo ? (
+                <ChatHeader busy={phase !== 'idle'} onNewChat={startNewChat} onSelect={send} />
+            ) : (
+                <h2 className="title">🤖 Chatbot</h2>
+            )}
 
             <div className="examples-bar">
                 <span className="examples-label">Examples:</span>
@@ -200,13 +220,15 @@ const MainComponent: React.FC = () => {
                         {q}
                     </button>
                 ))}
-                <button className="help-button" onClick={() => handleExample('help')}>
-                    help
-                </button>
+                {!movieDemo && (
+                    <button className="help-button" onClick={() => handleExample('help')}>
+                        help
+                    </button>
+                )}
             </div>
 
             <div className="chat-window">
-                {movieDemo && messages.length === 0 && (
+                {movieDemo && messages.length === 0 && pendingText === null && (
                     <ChatWelcome onSelect={send} disabled={phase !== 'idle'} />
                 )}
                 {messages.map((m, i) => (
@@ -223,6 +245,12 @@ const MainComponent: React.FC = () => {
                     </div>
                 ))}
 
+                {pendingText !== null && (
+                    <div className="message user">
+                        <b>You:</b>
+                        <span className="message-text">{pendingText}</span>
+                    </div>
+                )}
                 {phase === 'waking' && (
                     <div className="waking-up-msg">
                         <span role="status">The server is waking up… </span>
@@ -243,6 +271,7 @@ const MainComponent: React.FC = () => {
 
             <div className="input-area">
                 <input
+                    ref={inputRef}
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={event => {
