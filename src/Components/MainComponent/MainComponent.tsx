@@ -4,6 +4,7 @@ import axiosInstance, { createBackendReadiness } from '../../utils/axiosInstance
 import globals from '../../utils/globals';
 import { v4 as uuidv4 } from 'uuid';
 import MovieCards, { MovieSummary } from '../MovieCards/MovieCards';
+import ChatWelcome from '../ChatWelcome/ChatWelcome';
 import './MainComponent.css';
 
 const exampleQueries = [
@@ -205,6 +206,9 @@ const MainComponent: React.FC = () => {
             </div>
 
             <div className="chat-window">
+                {movieDemo && messages.length === 0 && (
+                    <ChatWelcome onSelect={send} disabled={phase !== 'idle'} />
+                )}
                 {messages.map((m, i) => (
                     <div key={i} className={`message ${m.from}`}>
                         <b>{m.from === 'user' ? 'You' : 'Bot'}:</b>{' '}
