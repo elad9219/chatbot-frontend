@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import MovieCards, { MovieSummary } from './MovieCards';
+import MovieCards, { MovieSummary } from '../MovieCards';
 
 const movie: MovieSummary = {
     id: 603,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import axiosInstance from '../../utils/axiosInstance';
-import MainComponent from './MainComponent';
+import axiosInstance from '../../../utils/axiosInstance';
+import MainComponent from '../MainComponent';
 
 jest.mock('axios', () => ({
     create: () => ({ get: jest.fn(), post: jest.fn() }),
