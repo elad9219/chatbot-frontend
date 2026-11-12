@@ -7,6 +7,7 @@ import MovieCards, { MovieSummary } from '../MovieCards/MovieCards';
 import ChatWelcome from '../ChatWelcome/ChatWelcome';
 import ChatHeader from '../ChatHeader/ChatHeader';
 import ChatPendingReply from '../ChatPendingReply/ChatPendingReply';
+import ChatFooter from '../ChatFooter/ChatFooter';
 import './MainComponent.css';
 
 const exampleQueries = [
@@ -264,12 +265,7 @@ const MainComponent: React.FC = () => {
                 {notice && <p role="alert">{notice}</p>}
             </div>
 
-            {movieDemo && (
-                <p className="movie-credit">
-                    This product uses the TMDB API but is not endorsed or certified by TMDB.{' '}
-                    <a href="https://www.themoviedb.org/about/logos-attribution">TMDB credits</a>
-                </p>
-            )}
+            {movieDemo && <ChatFooter />}
 
             <div className="input-area">
                 <input
@@ -281,6 +277,7 @@ const MainComponent: React.FC = () => {
                     }}
                     placeholder={movieDemo ? 'Type a message…' : 'Type something… e.g. "joke about money"'}
                     aria-label="Chat message"
+                    aria-describedby={movieDemo ? 'chat-language-hint' : undefined}
                 />
                 <button onClick={() => send()} className="send-button" aria-label="Send" disabled={phase !== 'idle'}>
                     <svg
