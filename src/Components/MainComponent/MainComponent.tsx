@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { isAxiosError } from 'axios';
 import axiosInstance, { createBackendReadiness } from '../../utils/axiosInstance';
 import globals from '../../utils/globals';
@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import MovieCards, { MovieSummary } from '../MovieCards/MovieCards';
 import ChatWelcome from '../ChatWelcome/ChatWelcome';
 import ChatHeader from '../ChatHeader/ChatHeader';
+import ChatPendingReply from '../ChatPendingReply/ChatPendingReply';
 import './MainComponent.css';
 
 const exampleQueries = [
@@ -38,16 +39,18 @@ const MainComponent: React.FC = () => {
     const [sessionId, setSessionId] = useState(() => uuidv4());
     const [pendingText, setPendingText] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const chatEndRef = useRef<HTMLDivElement>(null);
+    const chatWindowRef = useRef<HTMLDivElement>(null);
     const backend = useRef<{
         signal: AbortSignal;
         readiness: ReturnType<typeof createBackendReadiness>;
     } | null>(null);
     const pendingAction = useRef<object | null>(null);
 
-    useEffect(() => {
-        const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-        chatEndRef.current?.scrollIntoView?.({ behavior: reduceMotion ? 'auto' : 'smooth' });
+    useLayoutEffect(() => {
+        const chatWindow = chatWindowRef.current;
+        if (chatWindow) {
+            chatWindow.scrollTop = Math.max(0, chatWindow.scrollHeight - chatWindow.clientHeight);
+        }
     }, [messages, phase, notice, pendingText]);
 
     useEffect(() => {
@@ -227,7 +230,7 @@ const MainComponent: React.FC = () => {
                 )}
             </div>
 
-            <div className="chat-window">
+            <div className="chat-window" ref={chatWindowRef}>
                 {movieDemo && messages.length === 0 && pendingText === null && (
                     <ChatWelcome onSelect={send} disabled={phase !== 'idle'} />
                 )}
@@ -257,9 +260,8 @@ const MainComponent: React.FC = () => {
                         <button type="button" onClick={cancelWaiting}>Cancel</button>
                     </div>
                 )}
-                {phase === 'sending' && <p role="status">Waiting for a reply…</p>}
+                {phase === 'sending' && <ChatPendingReply />}
                 {notice && <p role="alert">{notice}</p>}
-                <div ref={chatEndRef} />
             </div>
 
             {movieDemo && (
